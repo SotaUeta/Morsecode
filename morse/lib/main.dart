@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:torch_light/torch_light.dart';
 
-class Message{
-  String name;
-  String text;
-  //DateTime timestamp;
+class Message {
+  String name = "";
+  String text = "";
+  DateTime time = DateTime(2025);
 
-  Message(this.name, this.text);
+  Message(this.name, this.text, this.time);
 }
+
+/*
+class MessageList{
+  List<Message> _chat = [];
+}
+*/
 
 void main() {
   runApp(const MyApp());
@@ -39,10 +45,11 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
 
-  var chat1 = Message("","");
-  String result = '';
-  bool _isTorchOn = false;
+  final List<Message> chatLog = [];
 
+  String result = '';
+  //bool _isTorchOn = false;
+/*
   Future<void> _toggleTorch() async {
     if (_isTorchOn) {
       await TorchLight.disableTorch();
@@ -53,7 +60,14 @@ class _ChatPageState extends State<ChatPage> {
       _isTorchOn = !_isTorchOn;
     });
   }
-  
+*/  
+
+  void addMessage(String result) {
+    setState(() {
+      chatLog.add(Message('aaa', result, DateTime.now()));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,36 +76,47 @@ class _ChatPageState extends State<ChatPage> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            SizedBox(
-              width: 350,
-              child: Text(chat1.text)
-            ),
-            SizedBox(
-              width: 350,
-              child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'メッセージを入力',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (String value){
-                    result = value;
-                  },
-              ),
-            ),
-            
-            SizedBox(
-              width: 300,
-              child: ElevatedButton(
-                onPressed: () {
-                  setState((){chat1.text=result;
-                  });
-                  _toggleTorch();
+            Expanded(
+              child: 
+              ListView.builder(
+                itemCount: chatLog.length,
+                itemBuilder: (context, index) {
+                  return Column(
+                      children: [Row(children: [Text(chatLog[index].name), Text((chatLog[index].time).toString())],), Text(chatLog[index].text)],
+                    );
                 },
-                child: const Text('メッセージを送信', style: TextStyle(color: Colors.black)),
               ),
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 300,
+                  child: TextField(
+                      maxLines: null,
+                      decoration: InputDecoration(
+                        hintText: 'メッセージを入力',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (String value){
+                        result = value;
+                      },
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: () {
+                    setState((){addMessage(result);});
+                    //_toggleTorch();
+                  }
+                )
+              ],
+            ),
+            SizedBox(
+              height: 30,
+            )
           ],
         ),
       ),
