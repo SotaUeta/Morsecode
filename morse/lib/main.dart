@@ -41,6 +41,18 @@ class _ChatPageState extends State<ChatPage> {
 
   var chat1 = Message("","");
   String result = '';
+  bool _isTorchOn = false;
+
+  Future<void> _toggleTorch() async {
+    if (_isTorchOn) {
+      await TorchLight.disableTorch();
+    }else {
+      await TorchLight.enableTorch();
+    }
+    setState(() {
+      _isTorchOn = !_isTorchOn;
+    });
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -75,6 +87,7 @@ class _ChatPageState extends State<ChatPage> {
                 onPressed: () {
                   setState((){chat1.text=result;
                   });
+                  _toggleTorch();
                 },
                 child: const Text('メッセージを送信', style: TextStyle(color: Colors.black)),
               ),
