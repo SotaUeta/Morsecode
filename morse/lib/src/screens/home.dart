@@ -20,6 +20,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final List<Message> chatLog = [];
+  final ScrollController _scrollController = ScrollController(); // ScrollControllerを追加
 
   String result = '';
   //bool _isTorchOn = false;
@@ -41,6 +42,15 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       chatLog.add(Message('aaa', result, DateTime.now()));
     });
+
+    // スクロール処理を追加
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   @override
@@ -56,6 +66,7 @@ class _ChatPageState extends State<ChatPage> {
             Expanded(
               child: 
               ListView.builder(
+                controller: _scrollController,
                 itemCount: chatLog.length,
                 itemBuilder: (context, index) {
                   return Column(
