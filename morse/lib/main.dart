@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:torch_light/torch_light.dart';
 
 class Message{
-  String name = "";
-  String message = "";
+  String name;
+  String text;
+  //DateTime timestamp;
+
+  Message(this.name, this.text);
 }
 
 void main() {
@@ -20,15 +24,23 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const ChatPage(),
+      home: const ChatPage(title:'morse'),
     );
   }
 }
 
-class ChatPage extends StatelessWidget {
-  const ChatPage({super.key});
+class ChatPage extends StatefulWidget {
+  const ChatPage({super.key, required this.title});
+  final String title;
 
-  final String _message = "";
+  @override
+  State<ChatPage> createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+
+  var chat1 = Message("","");
+  String result = '';
   
   @override
   Widget build(BuildContext context) {
@@ -42,13 +54,17 @@ class ChatPage extends StatelessWidget {
           children: [
             SizedBox(
               width: 350,
+              child: Text(chat1.text)
+            ),
+            SizedBox(
+              width: 350,
               child: TextField(
                   decoration: InputDecoration(
                     hintText: 'メッセージを入力',
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (String value){
-                    // _message = value;
+                    result = value;
                   },
               ),
             ),
@@ -56,7 +72,10 @@ class ChatPage extends StatelessWidget {
             SizedBox(
               width: 300,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  setState((){chat1.text=result;
+                  });
+                },
                 child: const Text('メッセージを送信', style: TextStyle(color: Colors.black)),
               ),
             ),
