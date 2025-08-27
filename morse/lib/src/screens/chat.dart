@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 //import 'package:torch_light/torch_light.dart';
 import 'camera.dart';
+import 'package:morse_code_generator/morse_code_generator.dart';
 
 class Message {
   String name = "";
@@ -20,8 +21,12 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final List<Message> chatLog = [];
+  final TextEditingController _textController = TextEditingController();
 
   String result = '';
+
+  String _morseOutput = '';
+
   //bool _isTorchOn = false;
 /*
   Future<void> _toggleTorch() async {
@@ -40,6 +45,13 @@ class _ChatPageState extends State<ChatPage> {
   void addMessage(String result) {
     setState(() {
       chatLog.add(Message('aaa', result, DateTime.now()));
+    });
+  }
+
+  void _convertTextToMorse() {
+    setState(() {
+      String inputText = _textController.text.replaceAll('\n', ' ');
+      _morseOutput = textToMorse(inputText);
     });
   }
 
@@ -70,6 +82,7 @@ class _ChatPageState extends State<ChatPage> {
                 SizedBox(
                   width: 280,
                   child: TextField(
+                      controller: _textController,
                       maxLines: null,
                       decoration: InputDecoration(
                         hintText: 'メッセージを入力',
@@ -85,7 +98,9 @@ class _ChatPageState extends State<ChatPage> {
                   onPressed: () {
                     setState((){addMessage(result);});
                     //_toggleTorch();
-                  }
+                    _convertTextToMorse();
+                    _textController.clear();
+                  },
                 ),
                 IconButton(
                   icon: const Icon(Icons.camera_alt),
@@ -95,9 +110,10 @@ class _ChatPageState extends State<ChatPage> {
                       MaterialPageRoute(builder:(context) => CameraPage())
                     );
                   }
-                )
+                ),
               ],
             ),
+            Text(_morseOutput),
             SizedBox(
               height: 30,
             )
