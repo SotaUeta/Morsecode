@@ -30,8 +30,9 @@ class ChatRoom {
 }
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.room});
+  const ChatPage({super.key, required this.room, required this.userName});
   final ChatRoom room;
+  final String userName;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -80,7 +81,7 @@ class _ChatPageState extends State<ChatPage> {
 
   void addMessage(String result) {
     setState(() {
-      widget.room.addMessage('aaa', result);
+      widget.room.addMessage(widget.userName, result);
     });
   }
 
