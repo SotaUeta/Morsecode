@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/home.dart';
 import 'screens/camera.dart';
+import 'screens/chat.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
