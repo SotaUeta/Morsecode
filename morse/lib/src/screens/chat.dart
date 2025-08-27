@@ -3,6 +3,7 @@ import 'package:torch_light/torch_light.dart';
 import 'camera.dart';
 import 'package:morse_code_generator/morse_code_generator.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 
 
 class Message {
@@ -25,6 +26,7 @@ class _ChatPageState extends State<ChatPage> {
   final List<Message> chatLog = [];
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final RegExp japaneseRegex = RegExp(r'[ぁ-んァ-ン一-龯]');
 
   bool isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
@@ -163,6 +165,9 @@ class _ChatPageState extends State<ChatPage> {
                     child: TextField(
                       controller: _textController,
                       maxLines: null,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.deny(japaneseRegex),
+                      ],
                       decoration: const InputDecoration(
                         hintText: 'メッセージを入力',
                         border: OutlineInputBorder(),
