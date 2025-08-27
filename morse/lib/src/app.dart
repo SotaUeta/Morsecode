@@ -28,28 +28,45 @@ class BottomNavigation extends StatefulWidget {
 }
 
 class _BottomNavigationState extends State<BottomNavigation> {
-  ChatRoom _currentRoom = ChatRoom("sample");
-
+  List<ChatRoom> _rooms = [ChatRoom("sample")];
+  late ChatRoom _currentRoom;
+  String _userName = 'もryーすタイル';
   int _selectedIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    _currentRoom = _rooms[0]; // 初期ルーム
+  }
+  
+  @override
   Widget build(BuildContext context) {
-    final _screens = [
-      HomePage(
+    Widget currentScreen;
+    if (_selectedIndex == 0) {
+      currentScreen = HomePage(
         title: 'ホーム',
-        onRoomSelected: (room) {
+        rooms: _rooms,
+        userName: _userName,
+        onUserNameChanged: (newName) {
           setState(() {
-            _currentRoom = room; //選んだルームを保存
-            _selectedIndex = 1; //チャットタブに切り替え
+            _userName = newName;
           });
         },
-      ),
-      ChatPage(room: _currentRoom), //現在のルームを参照
-      CameraPage(),
-    ]; 
+        onRoomSelected: (room) {
+          setState(() {
+            _currentRoom = room;
+            _selectedIndex = 1;
+          });
+        },
+      );
+    } else if (_selectedIndex == 1) {
+      currentScreen = ChatPage(room: _currentRoom, userName: _userName);
+    } else {
+      currentScreen = CameraPage();
+    }
     //final ThemeData theme = Theme.of(context);
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: currentScreen,
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
           setState(() {
