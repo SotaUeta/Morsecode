@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-//import 'package:torch_light/torch_light.dart';
+import 'package:torch_light/torch_light.dart';
 import 'camera.dart';
 import 'package:morse_code_generator/morse_code_generator.dart';
 
@@ -27,20 +27,32 @@ class _ChatPageState extends State<ChatPage> {
 
   String _morseOutput = '';
 
-  //bool _isTorchOn = false;
 /*
-  Future<void> _toggleTorch() async {
-    if (_isTorchOn) {
-      await TorchLight.disableTorch();
-    }else {
-      await TorchLight.enableTorch();
+  Future<void> _flashMorseSignal(String morse) async {
+      try {
+        await TorchLight.isTorchAvailable();
+      
+        for (int i = 0; i < morse.length; i++) {
+          final char = morse[i];
+          if (char == '.') {
+            await TorchLight.enableTorch();
+            await Future.delayed(Duration(milliseconds: 200));
+            await TorchLight.disableTorch();
+            await Future.delayed(Duration(milliseconds: 200));
+          } else if (char == '-') {
+            await TorchLight.enableTorch();
+            await Future.delayed(Duration(milliseconds: 600));
+            await TorchLight.disableTorch();
+            await Future.delayed(Duration(milliseconds: 200));
+          } else if (char == '/') {
+            await Future.delayed(Duration(milliseconds: 400));
+          }
+        }
+    } catch(e) {
+      print('Torch error: $e');
     }
-    setState(() {
-      _isTorchOn = !_isTorchOn;
-    });
   }
 */  
-
 
   void addMessage(String result) {
     setState(() {
@@ -95,10 +107,12 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.send),
-                  onPressed: () {
-                    setState((){addMessage(result);});
-                    //_toggleTorch();
-                    _convertTextToMorse();
+                  onPressed: () async {
+                    setState((){
+                      addMessage(result);
+                      _convertTextToMorse();
+                    });
+                   // await _flashMorseSignal(_morseOutput);
                     _textController.clear();
                   },
                 ),
