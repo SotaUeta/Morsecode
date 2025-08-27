@@ -29,8 +29,9 @@ class BottomNavigation extends StatefulWidget {
 
 class _BottomNavigationState extends State<BottomNavigation> {
   static const _screens = [
-    ChatPage(title: 'ホーム'),
-    CameraPage()
+    HomePage(title: 'ホーム'),
+    ChatPage(title: 'チャット'),
+    CameraPage(),
   ];
 
   int _selectedIndex = 0;
