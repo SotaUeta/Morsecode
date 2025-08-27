@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:morse/src/screens/home.dart';
-import 'package:morse_code_generator/morse_code_generator.dart';
+
+//import 'package:morse/src/screens/home.dart';
+//import 'package:morse_code_generator/morse_code_generator.dart';
 
 class CameraPage extends StatefulWidget{
   const CameraPage({super.key});
