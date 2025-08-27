@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 //import 'package:morse/src/screens/home.dart';
+<<<<<<< Updated upstream
+=======
+//import 'package:morse_code_generator/morse_code_generator.dart';
+>>>>>>> Stashed changes
 
 class CameraPage extends StatefulWidget{
   const CameraPage({super.key});
