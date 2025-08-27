@@ -30,7 +30,7 @@ class BottomNavigation extends StatefulWidget {
 class _BottomNavigationState extends State<BottomNavigation> {
   List<ChatRoom> _rooms = [ChatRoom("sample")];
   late ChatRoom _currentRoom;
-  String _userName = 'もryーすタイル';
+  String _userName = 'モールス太郎';
   int _selectedIndex = 0;
 
   @override
