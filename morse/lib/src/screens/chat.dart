@@ -10,9 +10,24 @@ class Message {
   Message(this.name, this.text, this.time);
 }
 
+class ChatRoom {
+  String roomName;
+  List<Message> messages = [];
+  
+  ChatRoom(this.roomName);
+
+  void addMessage(String name, String message) {
+    messages.add(Message(name, message, DateTime.now()));
+  }
+
+  void showMessage() {
+    
+  }
+}
+
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.title});
-  final String title;
+  const ChatPage({super.key, required this.room});
+  final ChatRoom room;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -39,15 +54,17 @@ class _ChatPageState extends State<ChatPage> {
 
   void addMessage(String result) {
     setState(() {
-      chatLog.add(Message('aaa', result, DateTime.now()));
+      widget.room.addMessage('aaa', result);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final chatLog = widget.room.messages;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('モールス信号'),
+        title: Text(widget.room.roomName),
       ),
       body: Center(
         child: Column(

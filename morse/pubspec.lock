@@ -131,6 +131,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.16.0"
+  morse_code_generator:
+    dependency: "direct main"
+    description:
+      name: morse_code_generator
+      sha256: dcceebfa2bf79db8da0acf6f4b19601f662788235ec71770c227c60cfd0acdf7
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   path:
     dependency: transitive
     description:
