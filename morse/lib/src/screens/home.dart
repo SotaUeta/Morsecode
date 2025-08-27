@@ -14,7 +14,7 @@ class _ChatPageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('モールス信号'),
+        title: const Text('ホーム'),
       ),
       body: Center(
         child: Column(
