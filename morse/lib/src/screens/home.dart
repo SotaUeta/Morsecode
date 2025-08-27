@@ -57,15 +57,30 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text("チャットルーム", style: TextStyle(fontSize: 18)),
+            ),
+          ),
           Expanded(
             child: ListView.builder(
               itemCount: widget.rooms.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(widget.rooms[index].roomName),
-                  onTap: () {
-                    widget.onRoomSelected(widget.rooms[index]);
-                  },
+                return Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Colors.deepPurpleAccent, width: 4),
+                    ),
+                  ),
+                  child: ListTile(
+                    leading: Icon(Icons.chat),
+                    title: Text(widget.rooms[index].roomName),
+                    onTap: () {
+                      widget.onRoomSelected(widget.rooms[index]);
+                    },
+                  )
                 );
               },
             ),
