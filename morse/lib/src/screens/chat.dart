@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:torch_light/torch_light.dart';
 import 'camera.dart';
 import 'package:morse_code_generator/morse_code_generator.dart';
+import 'package:intl/intl.dart';
+
 
 class Message {
   String name = "";
@@ -22,6 +24,11 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final List<Message> chatLog = [];
   final TextEditingController _textController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  bool isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
 
   String result = '';
 
@@ -56,7 +63,7 @@ class _ChatPageState extends State<ChatPage> {
 
   void addMessage(String result) {
     setState(() {
-      chatLog.add(Message('aaa', result, DateTime.now()));
+      chatLog.add(Message('自分', result, DateTime.now()));
     });
   }
 
@@ -78,59 +85,122 @@ class _ChatPageState extends State<ChatPage> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Expanded(
-              child: 
-              ListView.builder(
+              child: ListView.builder(
+                controller: _scrollController,
                 itemCount: chatLog.length,
                 itemBuilder: (context, index) {
+                  final message = chatLog[index];
+                  final prevMessage = index > 0 ? chatLog[index - 1] : null;
+
+                  bool showDateLabel = false;
+                  if (prevMessage == null) {
+                    showDateLabel = true;
+                  } else {
+                    if (!isSameDay(prevMessage.time, message.time)) {
+                      showDateLabel = true;
+                    }
+                  }
+
                   return Column(
-                      children: [Row(children: [Text(chatLog[index].name), Text((chatLog[index].time).toString())],), Text(chatLog[index].text)],
-                    );
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (showDateLabel)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Center(
+                            child: Text(
+                              DateFormat('yyyy/MM/dd').format(message.time),
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(message.name),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Container(
+                                  width: MediaQuery.of(context).size.width * 0.5,
+                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 8,
+                                        offset: Offset(0, 4),
+                                      ),
+                                    ],
+                                    border: Border.all(color: Colors.grey.shade300),
+                                  ),
+                                  child: Text(message.text),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(DateFormat('HH:mm').format(message.time)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
                 },
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 280,
-                  child: TextField(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
                       controller: _textController,
                       maxLines: null,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         hintText: 'メッセージを入力',
                         border: OutlineInputBorder(),
                       ),
-                      onChanged: (String value){
+                      onChanged: (value) {
                         result = value;
                       },
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () async {
-                    setState((){
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: () async {
                       addMessage(result);
                       _convertTextToMorse();
-                    });
-                   // await _flashMorseSignal(_morseOutput);
-                    _textController.clear();
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.camera_alt),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder:(context) => CameraPage())
-                    );
-                  }
-                ),
-              ],
+                      _textController.clear();
+
+                      await Future.delayed(Duration(milliseconds: 100));
+                      _scrollController.animateTo(
+                        _scrollController.position.maxScrollExtent,
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.camera_alt),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CameraPage()),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
             Text(_morseOutput),
-            SizedBox(
-              height: 30,
-            )
+            const SizedBox(height: 30),
           ],
         ),
       ),
