@@ -121,6 +121,16 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final chatLog = widget.room.messages;
 
