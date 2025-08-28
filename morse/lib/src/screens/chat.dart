@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-//import 'package:torch_light/torch_light.dart';
+import 'package:torch_light/torch_light.dart';
 import 'camera.dart';
 import 'package:morse_code_generator/morse_code_generator.dart';
 import 'package:intl/intl.dart';
@@ -80,7 +80,6 @@ class _ChatPageState extends State<ChatPage> {
 
   String _morseOutput = '';
 
-/*
   Future<void> _flashMorseSignal(String morse) async {
       try {
         await TorchLight.isTorchAvailable();
@@ -105,7 +104,6 @@ class _ChatPageState extends State<ChatPage> {
       print('Torch error: $e');
     }
   }
-*/  
 
   void addMessage(String result) {
     setState(() {
@@ -272,7 +270,7 @@ class _ChatPageState extends State<ChatPage> {
                   IconButton(
                     icon: const Icon(Icons.send),
                     onPressed: () async {
-                      if (result.trim().isEmpty) return; // 空なら何もしない
+                      if (result.trim().isEmpty) return; 
                       addMessage(result);
                       _convertTextToMorse();
                       _textController.clear();
@@ -284,6 +282,7 @@ class _ChatPageState extends State<ChatPage> {
                         duration: Duration(milliseconds: 300),
                         curve: Curves.easeOut,
                       );
+                      _flashMorseSignal(_morseOutput);
                     },
                   ),
                   IconButton(
