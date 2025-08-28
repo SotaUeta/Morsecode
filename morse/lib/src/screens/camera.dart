@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import 'dart:io';
-
+import 'chat.dart';
 import 'package:camera/camera.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
@@ -14,7 +14,11 @@ class Pulse {
 }
 
 class CameraScreen extends StatefulWidget {
-  const CameraScreen({super.key});
+  const CameraScreen({super.key, required this.room, required this.roomName, this.onMessageAdded});
+
+  final ChatRoom room;
+  final String roomName;
+  final VoidCallback? onMessageAdded; 
 
   @override
   State<CameraScreen> createState() => _CameraScreenState();
@@ -106,6 +110,13 @@ class _CameraScreenState extends State<CameraScreen> {
     setState(() {});
   }
 
+  void addMessage(String result) {
+    setState(() {
+      widget.room.addMessage(widget.roomName, result);
+      widget.onMessageAdded?.call();
+    });
+  }
+
   Future<void> _toggleStreaming() async {
     try {
       if (_cameraController != null) {
@@ -127,6 +138,22 @@ class _CameraScreenState extends State<CameraScreen> {
 
           _convertToString();
           debugPrint(_morseString);
+
+          if (_morseString.isNotEmpty && !_morseString.contains("?")) {
+            addMessage(_morseString); 
+
+            if (!mounted) return;
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (content) => ChatPage(
+                  room: widget.room, 
+                  userName: widget.roomName,
+                  onMessageAdded: widget.onMessageAdded,
+                ) 
+              )
+            );
+          }
 
           _morseSignal = "";
           _morseString = "";

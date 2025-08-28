@@ -71,7 +71,6 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final List<Message> chatLog = [];
   final TextEditingController _textController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
   bool _showScrollDown = false;
 
   final RegExp allowedRegex = RegExp(r'[a-zA-Z0-9 ,\.?!]');
@@ -336,7 +335,7 @@ class _ChatPageState extends State<ChatPage> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => CameraScreen()),
+                          MaterialPageRoute(builder: (context) => CameraScreen(room: widget.room, roomName: widget.userName, onMessageAdded: widget.onMessageAdded,)),
                         );
                       },
                     ),

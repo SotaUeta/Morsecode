@@ -96,7 +96,13 @@ class _BottomNavigationState extends State<BottomNavigation> {
         },
       );
     } else {
-      currentScreen = CameraScreen();
+      currentScreen = CameraScreen(
+        room: _currentRoom,
+        roomName: _currentRoom.roomName, 
+        onMessageAdded: () {
+          _saveData();
+        },
+      );
     }
     
     return Scaffold(
