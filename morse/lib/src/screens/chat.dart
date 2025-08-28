@@ -85,19 +85,20 @@ class _ChatPageState extends State<ChatPage> {
         await TorchLight.isTorchAvailable();
       
         for (int i = 0; i < morse.length; i++) {
+          const unitDuration = 500;
           final char = morse[i];
           if (char == '.') {
             await TorchLight.enableTorch();
-            await Future.delayed(Duration(milliseconds: 200));
+            await Future.delayed(Duration(milliseconds: unitDuration));
             await TorchLight.disableTorch();
-            await Future.delayed(Duration(milliseconds: 200));
+            await Future.delayed(Duration(milliseconds: unitDuration));
           } else if (char == '-') {
             await TorchLight.enableTorch();
-            await Future.delayed(Duration(milliseconds: 600));
+            await Future.delayed(Duration(milliseconds: unitDuration * 3));
             await TorchLight.disableTorch();
-            await Future.delayed(Duration(milliseconds: 200));
+            await Future.delayed(Duration(milliseconds: unitDuration));
           } else if (char == '/') {
-            await Future.delayed(Duration(milliseconds: 400));
+            await Future.delayed(Duration(milliseconds: unitDuration * 3));
           }
         }
     } catch(e) {

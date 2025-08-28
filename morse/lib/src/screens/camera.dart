@@ -320,6 +320,9 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('カメラ'),
+      ),
       body: _isCameraInitialized && _cameraController != null
           ? Stack(
               fit: StackFit.expand,
