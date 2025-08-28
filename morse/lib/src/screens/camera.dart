@@ -136,14 +136,60 @@ class _CameraScreenState extends State<CameraScreen> {
     _isProcessing = true;
 
     try {
-      // 画像をpng形式に変換
-      Uint8List? bytes = convertBGRA8888toImage(image);
+      Uint8List? bytes;
+
+      // フォーマット判別
+      if (image.format.group == ImageFormatGroup.yuv420) {
+        bytes = convertYUV420ToImage(image);
+      } else if (image.format.group == ImageFormatGroup.bgra8888) {
+        bytes = convertBGRA8888toImage(image);
+      } else {
+        debugPrint('Unsupported image format: ${image.format.group}');
+        return;
+      }
+
       if (bytes == null) return;
+
       await _runInference(bytes);
     } finally {
       _isProcessing = false;
     }
   }
+
+  Uint8List convertYUV420ToImage(CameraImage image) {
+    final int width = image.width;
+    final int height = image.height;
+
+    final img.Image imgImage = img.Image(width: image.width, height: image.height);
+
+    final Plane planeY = image.planes[0];
+    final Plane planeU = image.planes[1];
+    final Plane planeV = image.planes[2];
+
+    final int strideY = planeY.bytesPerRow;
+    final int strideUV = planeU.bytesPerRow;
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final int uvIndex = (y ~/ 2) * strideUV + (x ~/ 2);
+
+        final int yIndex = y * strideY + x;
+
+        final int Y = planeY.bytes[yIndex];
+        final int U = planeU.bytes[uvIndex];
+        final int V = planeV.bytes[uvIndex];
+
+        final int r = (Y + (1.370705 * (V - 128))).clamp(0, 255).toInt();
+        final int g = (Y - (0.337633 * (U - 128)) - (0.698001 * (V - 128))).clamp(0, 255).toInt();
+        final int b = (Y + (1.732446 * (U - 128))).clamp(0, 255).toInt();
+
+        imgImage.setPixelRgba(x, y, r, g, b, 255);
+      }
+    }
+
+    return Uint8List.fromList(img.encodePng(imgImage));
+  }
+
 
   // 取得した画像をpng形式に変換
   Uint8List convertBGRA8888toImage(CameraImage image) {

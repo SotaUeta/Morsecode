@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-//import 'package:torch_light/torch_light.dart';
+import 'package:torch_light/torch_light.dart';
 import 'camera.dart';
 import 'package:morse_code_generator/morse_code_generator.dart';
 import 'package:intl/intl.dart';
@@ -12,6 +12,18 @@ class Message {
   DateTime time = DateTime(2025);
 
   Message(this.name, this.text, this.time);
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'text': text,
+    'time': time.toIso8601String(),
+  };
+
+  factory Message.fromJson(Map<String, dynamic> json) => Message(
+    json['name'] ?? "",
+    json['text'] ?? "",
+    DateTime.parse(json['time']),
+  );
 }
 
 class ChatRoom {
@@ -24,15 +36,31 @@ class ChatRoom {
     messages.add(Message(name, message, DateTime.now()));
   }
 
+  Map<String, dynamic> toJson() => {
+    'roomName': roomName,
+    'messages': messages.map((m) => m.toJson()).toList(),
+  };
+
+  factory ChatRoom.fromJson(Map<String, dynamic> json) {
+    final room = ChatRoom(json['roomName'] ?? "");
+    if (json['messages'] != null) {
+      room.messages = (json['messages'] as List)
+        .map((m) => Message.fromJson(m))
+        .toList();
+    }
+    return room;
+  }
+
   void showMessage() {
     
   }
 }
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.room, required this.userName});
+  const ChatPage({super.key, required this.room, required this.userName, this.onMessageAdded});
   final ChatRoom room;
   final String userName;
+  final VoidCallback? onMessageAdded;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -52,7 +80,6 @@ class _ChatPageState extends State<ChatPage> {
 
   String _morseOutput = '';
 
-/*
   Future<void> _flashMorseSignal(String morse) async {
       try {
         await TorchLight.isTorchAvailable();
@@ -77,11 +104,11 @@ class _ChatPageState extends State<ChatPage> {
       print('Torch error: $e');
     }
   }
-*/  
 
   void addMessage(String result) {
     setState(() {
       widget.room.addMessage(widget.userName, result);
+      widget.onMessageAdded?.call();
     });
   }
 
@@ -243,7 +270,7 @@ class _ChatPageState extends State<ChatPage> {
                   IconButton(
                     icon: const Icon(Icons.send),
                     onPressed: () async {
-                      if (result.trim().isEmpty) return; // 空なら何もしない
+                      if (result.trim().isEmpty) return; 
                       addMessage(result);
                       _convertTextToMorse();
                       _textController.clear();
@@ -255,6 +282,7 @@ class _ChatPageState extends State<ChatPage> {
                         duration: Duration(milliseconds: 300),
                         curve: Curves.easeOut,
                       );
+                      _flashMorseSignal(_morseOutput);
                     },
                   ),
                   IconButton(

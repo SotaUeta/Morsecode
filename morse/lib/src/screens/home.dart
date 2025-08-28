@@ -34,6 +34,13 @@ class _HomePageState extends State<HomePage> {
       ),
     );
     if (newName != null && newName.isNotEmpty){
+      for (final room in widget.rooms) {
+        for (final msg in room.messages) {
+          if (msg.name == widget.userName) {
+            msg.name = newName;
+          }
+        }
+      }
       widget.onUserNameChanged(newName);
       setState(() {});
     }

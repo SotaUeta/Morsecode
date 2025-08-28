@@ -37,9 +37,11 @@ dependencies:
   torch_light: ^1.1.0
   morse_code_generator: ^1.0.1
   intl: ^0.20.2
+  flutter_launcher_icons: ^0.14.4
   camera: ^0.11.2
   tflite_flutter: ^0.11.0
   image: ^4.5.4
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
@@ -96,3 +98,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+  #morse_icon
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/images/Samuel_Morse_Icon.png"
