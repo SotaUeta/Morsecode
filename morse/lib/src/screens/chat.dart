@@ -12,6 +12,18 @@ class Message {
   DateTime time = DateTime(2025);
 
   Message(this.name, this.text, this.time);
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'text': text,
+    'time': time.toIso8601String(),
+  };
+
+  factory Message.fromJson(Map<String, dynamic> json) => Message(
+    json['name'] ?? "",
+    json['text'] ?? "",
+    DateTime.parse(json['time']),
+  );
 }
 
 class ChatRoom {
@@ -24,15 +36,31 @@ class ChatRoom {
     messages.add(Message(name, message, DateTime.now()));
   }
 
+  Map<String, dynamic> toJson() => {
+    'roomName': roomName,
+    'messages': messages.map((m) => m.toJson()).toList(),
+  };
+
+  factory ChatRoom.fromJson(Map<String, dynamic> json) {
+    final room = ChatRoom(json['roomName'] ?? "");
+    if (json['messages'] != null) {
+      room.messages = (json['messages'] as List)
+        .map((m) => Message.fromJson(m))
+        .toList();
+    }
+    return room;
+  }
+
   void showMessage() {
     
   }
 }
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.room, required this.userName});
+  const ChatPage({super.key, required this.room, required this.userName, this.onMessageAdded});
   final ChatRoom room;
   final String userName;
+  final VoidCallback? onMessageAdded;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -82,6 +110,7 @@ class _ChatPageState extends State<ChatPage> {
   void addMessage(String result) {
     setState(() {
       widget.room.addMessage(widget.userName, result);
+      widget.onMessageAdded?.call();
     });
   }
 
