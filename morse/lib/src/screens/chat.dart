@@ -56,6 +56,8 @@ class ChatRoom {
   }
 }
 
+final ScrollController _scrollController = ScrollController();
+
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.room, required this.userName, this.onMessageAdded});
   final ChatRoom room;
@@ -88,7 +90,10 @@ class _ChatPageState extends State<ChatPage> {
       
         for (int i = 0; i < morse.length; i++) {
           const unitDuration = 500;
-          final char = morse[i];
+
+          String textConverted = convertText(morse);
+
+          final char = textConverted[i];
           if (char == '.') {
             await TorchLight.enableTorch();
             await Future.delayed(Duration(milliseconds: unitDuration));
@@ -106,6 +111,18 @@ class _ChatPageState extends State<ChatPage> {
     } catch(e) {
       print('Torch error: $e');
     }
+  }
+
+  String convertText(String text) {
+    String textConverted = "";
+
+    for (int i = 0; i < text.length; i++) {
+      textConverted += text[i] + " ";
+    }
+
+    textConverted = textConverted.substring(0, textConverted.length - 1);
+
+    return textConverted;
   }
 
   void addMessage(String result) {
@@ -297,49 +314,79 @@ class _ChatPageState extends State<ChatPage> {
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(allowedRegex),
                         ],
-                        decoration: const InputDecoration(
-                          hintText: 'メッセージ(英数字)を入力',
-                          border: OutlineInputBorder(),
-                        ),
-                        onChanged: (value) {
-                          result = value;
-                        },
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.send),
-                      onPressed: () async {
-                        if (result.trim().isEmpty) return; 
-                        addMessage(result);
-                        _convertTextToMorse();
-                        _textController.clear();
-                        result = '';
-
-                        await Future.delayed(Duration(milliseconds: 100));
+                      );
+                    },
+                  ),
+                  Positioned(
+                    right: 16,
+                    bottom: 16,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_downward),
+                      tooltip: '一番下へ',
+                      onPressed: () {
                         _scrollController.animateTo(
                           _scrollController.position.maxScrollExtent,
                           duration: Duration(milliseconds: 300),
                           curve: Curves.easeOut,
                         );
-                        _flashMorseSignal(_morseOutput);
                       },
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.camera_alt),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => CameraScreen()),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Text(_morseOutput),
-              const SizedBox(height: 30),
-            ],
-          ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _textController,
+                      maxLines: null,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(allowedRegex),
+                      ],
+                      decoration: const InputDecoration(
+                        hintText: 'メッセージ(英数字)を入力',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        result = value;
+                      },
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: () async {
+                      if (result.trim().isEmpty) return; 
+                      addMessage(result);
+                      _convertTextToMorse();
+                      _textController.clear();
+                      result = '';
+
+                      await Future.delayed(Duration(milliseconds: 100));
+                        _scrollController.animateTo(
+                        _scrollController.position.maxScrollExtent,
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                      _flashMorseSignal(_morseOutput);
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.camera_alt),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CameraScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+          ],
         ),
       ),
     );
