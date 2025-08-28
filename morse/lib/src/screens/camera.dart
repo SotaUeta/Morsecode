@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
+import 'package:morse_code_generator/morse_code_generator.dart';
 
 class Pulse {
   final String? state;
@@ -50,6 +51,12 @@ class _CameraScreenState extends State<CameraScreen> {
   // 推論結果
   String? _predictionLabel;
   double? _predictionScore;
+
+  // モールス信号("." or "-")
+  String _morseSignal = "";
+
+  // 変換後のモールス信号
+  String _morseString = "";
   
   //利用可能なカメラのリスト
   List<CameraDescription> _cameras = [];
@@ -114,6 +121,16 @@ class _CameraScreenState extends State<CameraScreen> {
           for (var pulse in _pulse) {
             debugPrint("${pulse.state}: ${pulse.duration}");
           }
+
+          _analyzePulse();
+          debugPrint(_morseSignal);
+
+          _convertToString();
+          debugPrint(_morseString);
+
+          _morseSignal = "";
+          _morseString = "";
+
           if (!mounted) return;
           setState(() => _isStreaming = false);
           return;
@@ -129,6 +146,31 @@ class _CameraScreenState extends State<CameraScreen> {
       debugPrint('toggleStreaming error: ${e}');
     }
   } 
+
+  Future<void> _analyzePulse() async {
+    for (var pulse in _pulse) {
+      switch (pulse.state) {
+        case "on":
+          if (pulse.duration >= 400000 && pulse.duration <= 1000000) {
+            _morseSignal += ".";
+          } 
+          else if (pulse.duration >= 1300000 && pulse.duration <= 1800000) {
+            _morseSignal += "-";
+          }
+        case "off":
+          if (pulse.duration >= 1300000 && pulse.duration <= 2500000) {
+            _morseSignal += " ";
+          }
+      }
+    }
+  }
+
+  Future<void> _convertToString() async {
+    setState(() {
+      //_morseSignal = "... --- ...";
+      _morseString = morseToText(_morseSignal);
+    });
+  }
 
   // 画像の処理
   void _processImage(CameraImage image) async {
@@ -350,20 +392,3 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 }
-
-//import 'package:morse/src/screens/home.dart';
-//import 'package:morse_code_generator/morse_code_generator.dart';
-
-
-/*
-  final TextEditingController _morseController = TextEditingController();
-
-  String _textOutput = '';
-
-  void _convertMorseToText() {
-    setState(() {
-      String inputMorse = _morseController.text.trim();
-      _textOutput = morseToText(inputMorse);
-    });
-  }
-  */
