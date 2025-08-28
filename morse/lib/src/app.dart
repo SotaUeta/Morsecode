@@ -62,7 +62,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
     } else if (_selectedIndex == 1) {
       currentScreen = ChatPage(room: _currentRoom, userName: _userName);
     } else {
-      currentScreen = CameraPage();
+      currentScreen = CameraScreen();
     }
     //final ThemeData theme = Theme.of(context);
     return Scaffold(

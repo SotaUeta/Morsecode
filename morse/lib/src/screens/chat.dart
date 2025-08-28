@@ -262,7 +262,7 @@ class _ChatPageState extends State<ChatPage> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => CameraPage()),
+                        MaterialPageRoute(builder: (context) => CameraScreen()),
                       );
                     },
                   ),
