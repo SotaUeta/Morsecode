@@ -88,6 +88,30 @@ class _HomePageState extends State<HomePage> {
                       onTap: () {
                         widget.onRoomSelected(widget.rooms[index]);
                       },
+                      onLongPress: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('チャットルーム削除'),
+                            content: Text('「${widget.rooms[index].roomName}」を削除しますか？'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: Text('キャンセル'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: Text('削除'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          setState(() {
+                            widget.rooms.removeAt(index);
+                          });
+                        }
+                      },
                     ),
                   );
                 },
