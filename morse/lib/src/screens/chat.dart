@@ -127,7 +127,7 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent); // ← jumpToで即座に移動
       }
     });
     _scrollController.addListener(_scrollListener);
@@ -169,100 +169,103 @@ class _ChatPageState extends State<ChatPage> {
               Expanded(
                 child: Stack(
                   children: [
-                    ListView.builder(
+                    Scrollbar(
                       controller: _scrollController,
-                      itemCount: chatLog.length,
-                      itemBuilder: (context, index) {
-                        final message = chatLog[index];
-                        final prevMessage = index > 0 ? chatLog[index - 1] : null;
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        itemCount: chatLog.length,
+                        itemBuilder: (context, index) {
+                          final message = chatLog[index];
+                          final prevMessage = index > 0 ? chatLog[index - 1] : null;
 
-                        bool showDateLabel = false;
-                        if (prevMessage == null) {
-                          showDateLabel = true;
-                        } else {
-                          if (!isSameDay(prevMessage.time, message.time)) {
+                          bool showDateLabel = false;
+                          if (prevMessage == null) {
                             showDateLabel = true;
+                          } else {
+                            if (!isSameDay(prevMessage.time, message.time)) {
+                              showDateLabel = true;
+                            }
                           }
-                        }
 
-                        final bool isMe = message.name == widget.userName;
+                          final bool isMe = message.name == widget.userName;
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (showDateLabel)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Center(
-                                  child: Text(
-                                    DateFormat('yyyy/MM/dd').format(message.time),
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.bold,
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (showDateLabel)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  child: Center(
+                                    child: Text(
+                                      DateFormat('yyyy/MM/dd').format(message.time),
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              child: Column(
-                                crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                children: [
-                                  Text(message.name, textAlign: isMe ? TextAlign.right : TextAlign.left),
-                                  Row(
-                                    mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      if (!isMe) ...[
-                                        Container(
-                                          width: MediaQuery.of(context).size.width * 0.5,
-                                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(12),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Color.fromRGBO(0, 0, 0, 0.1), 
-                                                blurRadius: 8,
-                                                offset: Offset(0, 4),
-                                              ),
-                                            ],
-                                            border: Border.all(color: Colors.grey.shade300),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                child: Column(
+                                  crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                  children: [
+                                    Text(message.name, textAlign: isMe ? TextAlign.right : TextAlign.left),
+                                    Row(
+                                      mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        if (!isMe) ...[
+                                          Container(
+                                            width: MediaQuery.of(context).size.width * 0.5,
+                                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(12),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Color.fromRGBO(0, 0, 0, 0.1), 
+                                                  blurRadius: 8,
+                                                  offset: Offset(0, 4),
+                                                ),
+                                              ],
+                                              border: Border.all(color: Colors.grey.shade300),
+                                            ),
+                                            child: Text(message.text),
                                           ),
-                                          child: Text(message.text),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(DateFormat('HH:mm').format(message.time)),
-                                      ],
-                                      if (isMe) ...[
-                                        Text(DateFormat('HH:mm').format(message.time)),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          width: MediaQuery.of(context).size.width * 0.5,
-                                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                          decoration: BoxDecoration(
-                                            color: Colors.deepPurple[100],
-                                            borderRadius: BorderRadius.circular(12),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Color.fromRGBO(0, 0, 0, 0.1),
-                                                blurRadius: 8,
-                                                offset: Offset(0, 4),
-                                              ),
-                                            ],
-                                            border: Border.all(color: Colors.deepPurpleAccent),
+                                          const SizedBox(width: 8),
+                                          Text(DateFormat('HH:mm').format(message.time)),
+                                        ],
+                                        if (isMe) ...[
+                                          Text(DateFormat('HH:mm').format(message.time)),
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            width: MediaQuery.of(context).size.width * 0.5,
+                                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                            decoration: BoxDecoration(
+                                              color: Colors.deepPurple[100],
+                                              borderRadius: BorderRadius.circular(12),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Color.fromRGBO(0, 0, 0, 0.1),
+                                                  blurRadius: 8,
+                                                  offset: Offset(0, 4),
+                                                ),
+                                              ],
+                                              border: Border.all(color: Colors.deepPurpleAccent),
+                                            ),
+                                            child: Text(message.text),
                                           ),
-                                          child: Text(message.text),
-                                        ),
+                                        ],
                                       ],
-                                    ],
-                                  ),
-                                ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        );
-                      },
+                            ],
+                          );
+                        },
+                      ),
                     ),
                     if (_showScrollDown)
                       Positioned(
