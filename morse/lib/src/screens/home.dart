@@ -72,26 +72,24 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Expanded(
-            child: Scrollbar(
-              child: ListView.builder(
-                itemCount: widget.rooms.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: Colors.deepPurpleAccent, width: 4),
-                      ),
+            child: ListView.builder(
+              itemCount: widget.rooms.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Colors.deepPurpleAccent, width: 4),
                     ),
-                    child: ListTile(
-                      leading: Icon(Icons.chat),
-                      title: Text(widget.rooms[index].roomName),
-                      onTap: () {
-                        widget.onRoomSelected(widget.rooms[index]);
-                      },
-                    )
-                  );
-                },
-              ),
+                  ),
+                  child: ListTile(
+                    leading: Icon(Icons.chat),
+                    title: Text(widget.rooms[index].roomName),
+                    onTap: () {
+                      widget.onRoomSelected(widget.rooms[index]);
+                    },
+                  )
+                );
+              },
             ),
           ),
         ],
