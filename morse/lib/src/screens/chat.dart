@@ -167,7 +167,37 @@ class _ChatPageState extends State<ChatPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.room.roomName),
+          title: InkWell(
+            onTap: () async {
+              final controller = TextEditingController(text: widget.room.roomName);
+              final newName = await showDialog<String>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('ルーム名を変更'),
+                  content: TextField(
+                    controller: controller,
+                    decoration: InputDecoration(hintText: '新しいルーム名を入力'),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, null),
+                      child: Text('キャンセル'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, controller.text),
+                      child: Text('保存'),
+                    ),
+                  ],
+                ),
+              );
+              if (newName != null && newName.isNotEmpty) {
+                setState(() {
+                  widget.room.roomName = newName;
+                });
+              }
+            },
+            child: Text(widget.room.roomName),
+          ),
         ),
         body: Center(
           child: Column(
