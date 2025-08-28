@@ -56,8 +56,6 @@ class ChatRoom {
   }
 }
 
-final ScrollController _scrollController = ScrollController();
-
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.room, required this.userName, this.onMessageAdded});
   final ChatRoom room;
