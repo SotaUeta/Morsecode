@@ -70,6 +70,8 @@ class _ChatPageState extends State<ChatPage> {
   final List<Message> chatLog = [];
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  bool _showScrollDown = false;
+
   final RegExp allowedRegex = RegExp(r'[a-zA-Z0-9 ,\.?!]');
 
   bool isSameDay(DateTime a, DateTime b) {
@@ -128,6 +130,24 @@ class _ChatPageState extends State<ChatPage> {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       }
     });
+    _scrollController.addListener(_scrollListener);
+  }
+
+  void _scrollListener() {
+    final atBottom = _scrollController.offset >= _scrollController.position.maxScrollExtent - 10;
+    if (_showScrollDown != !atBottom) {
+      setState(() {
+        _showScrollDown = !atBottom;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    _textController.dispose();
+    super.dispose();
   }
 
   @override
@@ -244,21 +264,22 @@ class _ChatPageState extends State<ChatPage> {
                         );
                       },
                     ),
-                    Positioned(
-                      right: 16,
-                      bottom: 16,
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_downward),
-                        tooltip: '一番下へ',
-                        onPressed: () {
-                          _scrollController.animateTo(
-                            _scrollController.position.maxScrollExtent,
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeOut,
-                          );
-                        },
+                    if (_showScrollDown)
+                      Positioned(
+                        right: 16,
+                        bottom: 16,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_downward),
+                          tooltip: '一番下へ',
+                          onPressed: () {
+                            _scrollController.animateTo(
+                              _scrollController.position.maxScrollExtent,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                          },
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
