@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
 
 class Pulse {
-  final bool isOn;
-  final int micros;
-  Pulse(this.isOn, this.micros);
+  final String? state;
+  final int duration;
+  Pulse(this.state, this.duration);
 }
 
 class CameraScreen extends StatefulWidget {
@@ -33,13 +32,20 @@ class _CameraScreenState extends State<CameraScreen> {
   // 画像処理中かのフラグ
   bool _isProcessing = false;
 
+  // カメラストリーミング中かのフラグ
+  bool _isStreaming = false;
+
+  // タイマー
+  Stopwatch _stopwatch = Stopwatch();
+
   // 推論準備
   List<String> classLabels = [
     'on', 'off', 'unknown'
   ];
 
   List<Pulse> _pulse = [];
-  bool _signalState = false;
+  String? lastSignal = 'off';
+  int lastTime = 0;
 
   // 推論結果
   String? _predictionLabel;
@@ -48,7 +54,7 @@ class _CameraScreenState extends State<CameraScreen> {
   //利用可能なカメラのリスト
   List<CameraDescription> _cameras = [];
   //現在選択中のカメラの向き
-  CameraLensDirection _currentLensDirection = CameraLensDirection.back;
+  CameraLensDirection _currentLensDirection = CameraLensDirection.front;
 
   @override
   void initState() {
@@ -77,25 +83,52 @@ class _CameraScreenState extends State<CameraScreen> {
       if (_cameras.isEmpty) {
         throw Exception('No cameras found');
       }
-      _initializeCameraController();
+      await _initializeCameraController();
     } catch (e) {
       _showInitializationErrorDialog();
     }
 
     if (_cameraController != null) {
-      await _cameraController.initialize();
 
         final inT = _interpreter!.getInputTensor(0);
         debugPrint('input shape=${inT.shape}, type=${inT.type}'); // 例: [1,224,224,3], float32
         final outT = _interpreter!.getOutputTensor(0);
         debugPrint('output shape=${outT.shape}, type=${outT.type}');
-
-      // リアルタイム画像を取得開始
-      await _cameraController.startImageStream(_processImage);
     }
 
     setState(() {});
   }
+
+  Future<void> _toggleStreaming() async {
+    try {
+      if (_cameraController != null) {
+        if (_cameraController.value.isStreamingImages) {
+          await _cameraController.stopImageStream();
+
+          Pulse pulse = Pulse(_predictionLabel, _stopwatch.elapsedMicroseconds - lastTime);
+          _pulse.add(pulse);
+
+          _stopwatch.stop();
+          _stopwatch.reset();
+          debugPrint("timer stop!!!");
+          for (var pulse in _pulse) {
+            debugPrint("${pulse.state}: ${pulse.duration}");
+          }
+          if (!mounted) return;
+          setState(() => _isStreaming = false);
+          return;
+        }
+
+        _isStreaming = true;
+        _stopwatch.start();
+        debugPrint("timer start!!!");
+        _pulse = [];
+        await _cameraController.startImageStream(_processImage);
+      }
+    } on CameraException catch (e) {
+      debugPrint('toggleStreaming error: ${e}');
+    }
+  } 
 
   // 画像の処理
   void _processImage(CameraImage image) async {
@@ -153,17 +186,17 @@ class _CameraScreenState extends State<CameraScreen> {
 
     final scores = output[0];
 
-    if (classLabels.length == scores.length) {
-    // 例: "on: 0.812  off: 0.143  unknown: 0.045"
-    final buf = StringBuffer();
-    for (int i = 0; i < scores.length; i++) {
-      buf.write('${classLabels[i]}: ${scores[i].toStringAsFixed(3)}  ');
-    } 
-    debugPrint(buf.toString());
-    } else {
-      // ラベル数が合ってない場合のフォールバック
-      debugPrint('scores: ${scores.map((v) => v.toStringAsFixed(3)).toList()}');
-    }
+    // if (classLabels.length == scores.length) {
+    // // 例: "on: 0.812  off: 0.143  unknown: 0.045"
+    // final buf = StringBuffer();
+    // for (int i = 0; i < scores.length; i++) {
+    //   buf.write('${classLabels[i]}: ${scores[i].toStringAsFixed(3)}  ');
+    // } 
+    // debugPrint(buf.toString());
+    // } else {
+    //   // ラベル数が合ってない場合のフォールバック
+    //   debugPrint('scores: ${scores.map((v) => v.toStringAsFixed(3)).toList()}');
+    // }
 
     final maxScore = output[0].reduce((a, b) => a > b ? a : b);
     final maxIndex = output[0].indexOf(maxScore);
@@ -173,11 +206,20 @@ class _CameraScreenState extends State<CameraScreen> {
       _predictionScore = maxScore;
     });
 
-    if (_signalState != !_signalState) {
-      _signalState = !_signalState;
-    } 
+    if (_predictionLabel == "unknown") {
+      _predictionLabel = "off";
+    }
 
-     debugPrint("$_predictionLabel: $_predictionScore");
+    debugPrint(_predictionLabel);
+
+    if (_predictionLabel != lastSignal) {
+      int nowTime = _stopwatch.elapsedMicroseconds;
+      int duration = nowTime - lastTime;
+      Pulse pulse = Pulse(lastSignal, duration);
+      _pulse.add(pulse);
+      lastSignal = _predictionLabel;
+      lastTime = nowTime;
+    }
   }
 
   Future<void> _initializeCameraController() async {
@@ -192,7 +234,7 @@ class _CameraScreenState extends State<CameraScreen> {
         enableAudio: false,
       );
 
-      debugPrint("3");
+      debugPrint("6");
 
       await _cameraController!.initialize();
 
@@ -238,6 +280,21 @@ class _CameraScreenState extends State<CameraScreen> {
               children: [
                 CameraPreview(_cameraController!),
                 Text('$_predictionLabel:$_predictionScore'),
+
+                // 画面下のトグルボタン
+              Positioned(
+                left: 24,
+                right: 24,
+                bottom: 24,
+                child: SafeArea(
+                  child: ElevatedButton.icon(
+                    onPressed: _toggleStreaming,
+                    icon: Icon(_isStreaming ? Icons.stop : Icons.play_arrow),
+                    label: Text(_isStreaming ? 'ストリーミング停止' : 'ストリーミング開始'),
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
+                  ),
+                ),
+              ),
               ],
             )
           : const Center(child: CircularProgressIndicator()),
