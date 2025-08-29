@@ -136,10 +136,10 @@ class _CameraScreenState extends State<CameraScreen> {
           _convertToString();
           debugPrint(_morseString);
 
+          Navigator.pop(context, _morseString);
+
           _morseSignal = "";
           _morseString = "";
-
-          Navigator.pop(context, _morseString);
 
           if (!mounted) return;
           setState(() => _isStreaming = false);
@@ -207,6 +207,13 @@ class _CameraScreenState extends State<CameraScreen> {
       _isProcessing = false;
     }
   }
+
+// 
+// 
+// 多分ここら辺から下の部分を別のファイルに分けたほうがいい
+// 
+// 
+
 
   Uint8List convertYUV420ToImage(CameraImage image) {
     final int width = image.width;
@@ -314,20 +321,6 @@ class _CameraScreenState extends State<CameraScreen> {
     if (_interpreter != null) {
       _interpreter.run(input, output);
     }
-
-    final scores = output[0];
-
-    // if (classLabels.length == scores.length) {
-    // // 例: "on: 0.812  off: 0.143  unknown: 0.045"
-    // final buf = StringBuffer();
-    // for (int i = 0; i < scores.length; i++) {
-    //   buf.write('${classLabels[i]}: ${scores[i].toStringAsFixed(3)}  ');
-    // }
-    // debugPrint(buf.toString());
-    // } else {
-    //   // ラベル数が合ってない場合のフォールバック
-    //   debugPrint('scores: ${scores.map((v) => v.toStringAsFixed(3)).toList()}');
-    // }
 
     final maxScore = output[0].reduce((a, b) => a > b ? a : b);
     final maxIndex = output[0].indexOf(maxScore);
