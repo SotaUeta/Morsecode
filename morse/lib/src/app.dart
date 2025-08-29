@@ -99,6 +99,9 @@ class _BottomNavigationState extends State<BottomNavigation> {
         onMessageAdded: () {
           _saveData();
         },
+        onRoomsChanged: () {
+          _saveData();
+        }
       );
     } else {
       currentScreen = CameraScreen();

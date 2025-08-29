@@ -57,10 +57,18 @@ class ChatRoom {
 }
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.room, required this.userName, this.onMessageAdded});
+  const ChatPage({
+    super.key, 
+    required this.room, 
+    required this.userName, 
+    this.onMessageAdded,
+    this.onRoomsChanged,
+  });
+
   final ChatRoom room;
   final String userName;
   final VoidCallback? onMessageAdded;
+  final VoidCallback? onRoomsChanged;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -192,6 +200,7 @@ class _ChatPageState extends State<ChatPage> {
                 setState(() {
                   widget.room.roomName = newName;
                 });
+                widget.onRoomsChanged?.call;
               }
             },
             child: Text(widget.room.roomName),
