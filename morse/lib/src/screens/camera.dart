@@ -22,7 +22,7 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> {
   //カメラコントローラー
-  late final CameraController? _cameraController;
+  late final CameraController _cameraController;
 
   // モデル
   late final Interpreter? _interpreter;
@@ -36,17 +36,21 @@ class _CameraScreenState extends State<CameraScreen> {
   // カメラストリーミング中かのフラグ
   bool _isStreaming = false;
 
+  // ストリーミング開始済みかのフラグ
+  bool _hasStarted = false;
+
   // タイマー
   Stopwatch _stopwatch = Stopwatch();
 
   // 推論準備
-  List<String> classLabels = [
-    'on', 'off', 'unknown'
-  ];
+  List<String> classLabels = ['on', 'off', 'unknown'];
 
   List<Pulse> _pulse = [];
+
   String? lastSignal = 'off';
   int lastTime = 0;
+
+  int minOnDuration = 200000;
 
   // 推論結果
   String? _predictionLabel;
@@ -57,7 +61,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   // 変換後のモールス信号
   String _morseString = "";
-  
+
   //利用可能なカメラのリスト
   List<CameraDescription> _cameras = [];
   //現在選択中のカメラの向き
@@ -96,11 +100,12 @@ class _CameraScreenState extends State<CameraScreen> {
     }
 
     if (_cameraController != null) {
-
-        final inT = _interpreter!.getInputTensor(0);
-        debugPrint('input shape=${inT.shape}, type=${inT.type}'); // 例: [1,224,224,3], float32
-        final outT = _interpreter!.getOutputTensor(0);
-        debugPrint('output shape=${outT.shape}, type=${outT.type}');
+      final inT = _interpreter!.getInputTensor(0);
+      debugPrint(
+        'input shape=${inT.shape}, type=${inT.type}',
+      ); // 例: [1,224,224,3], float32
+      final outT = _interpreter!.getOutputTensor(0);
+      debugPrint('output shape=${outT.shape}, type=${outT.type}');
     }
 
     setState(() {});
@@ -112,7 +117,10 @@ class _CameraScreenState extends State<CameraScreen> {
         if (_cameraController.value.isStreamingImages) {
           await _cameraController.stopImageStream();
 
-          Pulse pulse = Pulse(_predictionLabel, _stopwatch.elapsedMicroseconds - lastTime);
+          Pulse pulse = Pulse(
+            _predictionLabel,
+            _stopwatch.elapsedMicroseconds - lastTime,
+          );
           _pulse.add(pulse);
 
           _stopwatch.stop();
@@ -131,6 +139,8 @@ class _CameraScreenState extends State<CameraScreen> {
           _morseSignal = "";
           _morseString = "";
 
+          Navigator.pop(context, _morseString);
+
           if (!mounted) return;
           setState(() => _isStreaming = false);
           return;
@@ -140,12 +150,13 @@ class _CameraScreenState extends State<CameraScreen> {
         _stopwatch.start();
         debugPrint("timer start!!!");
         _pulse = [];
+        _hasStarted = false;
         await _cameraController.startImageStream(_processImage);
       }
     } on CameraException catch (e) {
       debugPrint('toggleStreaming error: ${e}');
     }
-  } 
+  }
 
   Future<void> _analyzePulse() async {
     for (var pulse in _pulse) {
@@ -153,8 +164,7 @@ class _CameraScreenState extends State<CameraScreen> {
         case "on":
           if (pulse.duration >= 400000 && pulse.duration <= 1000000) {
             _morseSignal += ".";
-          } 
-          else if (pulse.duration >= 1300000 && pulse.duration <= 1800000) {
+          } else if (pulse.duration >= 1300000 && pulse.duration <= 1800000) {
             _morseSignal += "-";
           }
         case "off":
@@ -202,40 +212,60 @@ class _CameraScreenState extends State<CameraScreen> {
     final int width = image.width;
     final int height = image.height;
 
-    final img.Image imgImage = img.Image(width: image.width, height: image.height);
-
     final Plane planeY = image.planes[0];
     final Plane planeU = image.planes[1];
     final Plane planeV = image.planes[2];
 
     final int strideY = planeY.bytesPerRow;
     final int strideUV = planeU.bytesPerRow;
+    final int pixelStrideUV = planeU.bytesPerPixel ?? 1; // 通常は1か2
+
+    // RGBAバイト配列バッファ（幅×高さ×4バイト）
+    final Uint8List imgBuffer = Uint8List(width * height * 4);
+
+    int bufferIndex = 0;
 
     for (int y = 0; y < height; y++) {
+      final int uvRow = y >> 1; // y ~/ 2 と同じ
+
       for (int x = 0; x < width; x++) {
-        final int uvIndex = (y ~/ 2) * strideUV + (x ~/ 2);
+        final int uvCol = x >> 1;
 
         final int yIndex = y * strideY + x;
+        final int uvIndex = uvRow * strideUV + uvCol * pixelStrideUV;
 
         final int Y = planeY.bytes[yIndex];
         final int U = planeU.bytes[uvIndex];
         final int V = planeV.bytes[uvIndex];
 
-        final int r = (Y + (1.370705 * (V - 128))).clamp(0, 255).toInt();
-        final int g = (Y - (0.337633 * (U - 128)) - (0.698001 * (V - 128))).clamp(0, 255).toInt();
-        final int b = (Y + (1.732446 * (U - 128))).clamp(0, 255).toInt();
+        int r = (Y + 1.370705 * (V - 128)).round();
+        int g = (Y - 0.337633 * (U - 128) - 0.698001 * (V - 128)).round();
+        int b = (Y + 1.732446 * (U - 128)).round();
 
-        imgImage.setPixelRgba(x, y, r, g, b, 255);
+        r = r.clamp(0, 255);
+        g = g.clamp(0, 255);
+        b = b.clamp(0, 255);
+
+        imgBuffer[bufferIndex++] = r;
+        imgBuffer[bufferIndex++] = g;
+        imgBuffer[bufferIndex++] = b;
+        imgBuffer[bufferIndex++] = 255; // alpha
       }
     }
 
+    // img.Image をバイト列から作成
+    final imgImage = img.Image.fromBytes(width:width, height:height, bytes: Uint8List(width * height * 4).buffer);
+
+    // PNGエンコード
     return Uint8List.fromList(img.encodePng(imgImage));
   }
 
-
   // 取得した画像をpng形式に変換
   Uint8List convertBGRA8888toImage(CameraImage image) {
-    final img.Image rgbImage = img.Image(width: image.width, height: image.height);
+    final img.Image rgbImage = img.Image(
+      width: image.width,
+      height: image.height,
+    );
 
     for (int y = 0; y < image.height; y++) {
       for (int x = 0; x < image.width; x++) {
@@ -249,6 +279,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
     return Uint8List.fromList(img.encodePng(rgbImage));
   }
+
   // 推論
   Future<void> _runInference(Uint8List imageBytes) async {
     final image = img.decodeImage(imageBytes);
@@ -256,17 +287,23 @@ class _CameraScreenState extends State<CameraScreen> {
 
     final input = List.generate(
       1,
-      (_) => List.generate(224, (y) => List.generate(224, (x) {
-        final pixel = resized.getPixel(x, y);
-        return [
-          pixel.r.toDouble() / 255.0,
-          pixel.g.toDouble() / 255.0,
-          pixel.b.toDouble() / 255.0
-        ];
-      })),
+      (_) => List.generate(
+        224,
+        (y) => List.generate(224, (x) {
+          final pixel = resized.getPixel(x, y);
+          return [
+            pixel.r.toDouble() / 255.0,
+            pixel.g.toDouble() / 255.0,
+            pixel.b.toDouble() / 255.0,
+          ];
+        }),
+      ),
     );
 
-    final output = List<List<double>>.generate(1, (_) => List<double>.filled(3, 0.0));
+    final output = List<List<double>>.generate(
+      1,
+      (_) => List<double>.filled(3, 0.0),
+    );
 
     if (_interpreter != null) {
       _interpreter.run(input, output);
@@ -279,7 +316,7 @@ class _CameraScreenState extends State<CameraScreen> {
     // final buf = StringBuffer();
     // for (int i = 0; i < scores.length; i++) {
     //   buf.write('${classLabels[i]}: ${scores[i].toStringAsFixed(3)}  ');
-    // } 
+    // }
     // debugPrint(buf.toString());
     // } else {
     //   // ラベル数が合ってない場合のフォールバック
@@ -303,39 +340,51 @@ class _CameraScreenState extends State<CameraScreen> {
     if (_predictionLabel != lastSignal) {
       int nowTime = _stopwatch.elapsedMicroseconds;
       int duration = nowTime - lastTime;
-      Pulse pulse = Pulse(lastSignal, duration);
-      _pulse.add(pulse);
+
+      if (_hasStarted) {
+        Pulse pulse = Pulse(lastSignal, duration);
+        _pulse.add(pulse);
+      } else if (_predictionLabel == "on" && duration >= minOnDuration) {
+        _hasStarted = true;
+        debugPrint('Initial ON Pulse Detected. Starting recording.');
+
+        Pulse pulse = Pulse(lastSignal, duration);
+        _pulse.add(pulse);
+      } else {
+        debugPrint('Initial ON Pulse Ignored: $duration microseconds (too short).');
+      }
       lastSignal = _predictionLabel;
       lastTime = nowTime;
     }
   }
 
   Future<void> _initializeCameraController() async {
-      final initialCamera = _cameras.firstWhere(
-        (camera) => camera.lensDirection == _currentLensDirection,
-        orElse: () => _cameras.first,
-      );
+    final initialCamera = _cameras.firstWhere(
+      (camera) => camera.lensDirection == _currentLensDirection,
+      orElse: () => _cameras.first,
+    );
 
-      _cameraController = CameraController(
-        initialCamera,
-        ResolutionPreset.low,
-        enableAudio: false,
-      );
+    _cameraController = CameraController(
+      initialCamera,
+      ResolutionPreset.low,
+      enableAudio: false,
+    );
 
-      debugPrint("6");
+    debugPrint("6");
 
-      await _cameraController!.initialize();
+    await _cameraController!.initialize();
 
-      if (mounted) {
-        setState(() {
-          _isCameraInitialized = true;
-        });
-      }
+    if (mounted) {
+      setState(() {
+        _isCameraInitialized = true;
+      });
+    }
   }
 
   @override
   void dispose() {
     _cameraController?.dispose();
+    _interpreter?.close();
     super.dispose();
   }
 
@@ -349,22 +398,16 @@ class _CameraScreenState extends State<CameraScreen> {
         title: const Text('エラー'),
         content: const Text('カメラの初期化に失敗しました。アプリを終了します。'),
         actions: [
-          TextButton(
-            onPressed: () => exit(0),
-            child: const Text('OK'),
-          ),
+          TextButton(onPressed: () => exit(0), child: const Text('OK')),
         ],
       ),
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('カメラ'),
-      ),
+      appBar: AppBar(title: const Text('カメラ')),
       body: _isCameraInitialized && _cameraController != null
           ? Stack(
               fit: StackFit.expand,
@@ -373,19 +416,21 @@ class _CameraScreenState extends State<CameraScreen> {
                 Text('$_predictionLabel:$_predictionScore'),
 
                 // 画面下のトグルボタン
-              Positioned(
-                left: 24,
-                right: 24,
-                bottom: 24,
-                child: SafeArea(
-                  child: ElevatedButton.icon(
-                    onPressed: _toggleStreaming,
-                    icon: Icon(_isStreaming ? Icons.stop : Icons.play_arrow),
-                    label: Text(_isStreaming ? 'ストリーミング停止' : 'ストリーミング開始'),
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
+                Positioned(
+                  left: 24,
+                  right: 24,
+                  bottom: 24,
+                  child: SafeArea(
+                    child: ElevatedButton.icon(
+                      onPressed: _toggleStreaming,
+                      icon: Icon(_isStreaming ? Icons.stop : Icons.play_arrow),
+                      label: Text(_isStreaming ? 'ストリーミング停止' : 'ストリーミング開始'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.all(16),
+                      ),
+                    ),
                   ),
                 ),
-              ),
               ],
             )
           : const Center(child: CircularProgressIndicator()),

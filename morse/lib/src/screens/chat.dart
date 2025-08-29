@@ -5,7 +5,6 @@ import 'package:morse_code_generator/morse_code_generator.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 
-
 class Message {
   String name = "";
   String text = "";
@@ -29,7 +28,7 @@ class Message {
 class ChatRoom {
   String roomName;
   List<Message> messages = [];
-  
+
   ChatRoom(this.roomName);
 
   void addMessage(String name, String message) {
@@ -45,15 +44,13 @@ class ChatRoom {
     final room = ChatRoom(json['roomName'] ?? "");
     if (json['messages'] != null) {
       room.messages = (json['messages'] as List)
-        .map((m) => Message.fromJson(m))
-        .toList();
+          .map((m) => Message.fromJson(m))
+          .toList();
     }
     return room;
   }
 
-  void showMessage() {
-    
-  }
+  void showMessage() {}
 }
 
 class ChatPage extends StatefulWidget {
@@ -75,10 +72,10 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final List<Message> chatLog = [];
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _showScrollDown = false;
+  bool _isFlashing = false;
 
   final RegExp allowedRegex = RegExp(r'[a-zA-Z0-9 ,\.?!]');
 
@@ -91,31 +88,31 @@ class _ChatPageState extends State<ChatPage> {
   String _morseOutput = '';
 
   Future<void> _flashMorseSignal(String morse) async {
-      try {
-        await TorchLight.isTorchAvailable();
-      
-        for (int i = 0; i < morse.length; i++) {
-          const unitDuration = 500;
+    try {
+      await TorchLight.isTorchAvailable();
 
-          debugPrint(morse[i]);
+      for (int i = 0; i < morse.length; i++) {
+        const unitDuration = 500;
 
-          final char = morse[i];
-          if (char == '.') {
-            await TorchLight.enableTorch();
-            await Future.delayed(Duration(milliseconds: unitDuration));
-            await TorchLight.disableTorch();
-            await Future.delayed(Duration(milliseconds: unitDuration));
-          } else if (char == '-') {
-            await TorchLight.enableTorch();
-            await Future.delayed(Duration(milliseconds: unitDuration * 3));
-            await TorchLight.disableTorch();
-            await Future.delayed(Duration(milliseconds: unitDuration));
-          } else if (char == ' ' || char == '/') {
-            await Future.delayed(Duration(milliseconds: unitDuration * 3));
-          }
+        debugPrint(morse[i]);
+
+        final char = morse[i];
+        if (char == '.') {
+          await TorchLight.enableTorch();
+          await Future.delayed(Duration(milliseconds: unitDuration));
+          await TorchLight.disableTorch();
+          await Future.delayed(Duration(milliseconds: unitDuration));
+        } else if (char == '-') {
+          await TorchLight.enableTorch();
+          await Future.delayed(Duration(milliseconds: unitDuration * 3));
+          await TorchLight.disableTorch();
+          await Future.delayed(Duration(milliseconds: unitDuration));
+        } else if (char == ' ' || char == '/') {
+          await Future.delayed(Duration(milliseconds: unitDuration * 3));
         }
-    } catch(e) {
-      print('Torch error: $e');
+      }
+    } catch (e) {
+      print(Text('Torch error: $e'));
     }
   }
 
@@ -147,7 +144,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _scrollListener() {
-    final atBottom = _scrollController.offset >= _scrollController.position.maxScrollExtent - 10;
+    final atBottom =
+        _scrollController.offset >=
+        _scrollController.position.maxScrollExtent - 10;
     if (_showScrollDown != !atBottom) {
       setState(() {
         _showScrollDown = !atBottom;
@@ -175,7 +174,9 @@ class _ChatPageState extends State<ChatPage> {
         appBar: AppBar(
           title: InkWell(
             onTap: () async {
-              final controller = TextEditingController(text: widget.room.roomName);
+              final controller = TextEditingController(
+                text: widget.room.roomName,
+              );
               final newName = await showDialog<String>(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -220,7 +221,9 @@ class _ChatPageState extends State<ChatPage> {
                         itemCount: chatLog.length,
                         itemBuilder: (context, index) {
                           final message = chatLog[index];
-                          final prevMessage = index > 0 ? chatLog[index - 1] : null;
+                          final prevMessage = index > 0
+                              ? chatLog[index - 1]
+                              : null;
 
                           bool showDateLabel = false;
                           if (prevMessage == null) {
@@ -238,10 +241,14 @@ class _ChatPageState extends State<ChatPage> {
                             children: [
                               if (showDateLabel)
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
                                   child: Center(
                                     child: Text(
-                                      DateFormat('yyyy/MM/dd').format(message.time),
+                                      DateFormat(
+                                        'yyyy/MM/dd',
+                                      ).format(message.time),
                                       style: TextStyle(
                                         color: Colors.grey,
                                         fontWeight: FontWeight.bold,
@@ -250,53 +257,104 @@ class _ChatPageState extends State<ChatPage> {
                                   ),
                                 ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
                                 child: Column(
-                                  crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                  crossAxisAlignment: isMe
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
                                   children: [
-                                    Text(message.name, textAlign: isMe ? TextAlign.right : TextAlign.left),
+                                    Text(
+                                      message.name,
+                                      textAlign: isMe
+                                          ? TextAlign.right
+                                          : TextAlign.left,
+                                    ),
                                     Row(
-                                      mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      mainAxisAlignment: isMe
+                                          ? MainAxisAlignment.end
+                                          : MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
                                       children: [
                                         if (!isMe) ...[
                                           Container(
-                                            width: MediaQuery.of(context).size.width * 0.5,
-                                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                            width:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.width *
+                                                0.5,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                              horizontal: 16,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: Colors.white,
-                                              borderRadius: BorderRadius.circular(12),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Color.fromRGBO(0, 0, 0, 0.1), 
+                                                  color: Color.fromRGBO(
+                                                    0,
+                                                    0,
+                                                    0,
+                                                    0.1,
+                                                  ),
                                                   blurRadius: 8,
                                                   offset: Offset(0, 4),
                                                 ),
                                               ],
-                                              border: Border.all(color: Colors.grey.shade300),
+                                              border: Border.all(
+                                                color: Colors.grey.shade300,
+                                              ),
                                             ),
                                             child: Text(message.text),
                                           ),
                                           const SizedBox(width: 8),
-                                          Text(DateFormat('HH:mm').format(message.time)),
+                                          Text(
+                                            DateFormat(
+                                              'HH:mm',
+                                            ).format(message.time),
+                                          ),
                                         ],
                                         if (isMe) ...[
-                                          Text(DateFormat('HH:mm').format(message.time)),
+                                          Text(
+                                            DateFormat(
+                                              'HH:mm',
+                                            ).format(message.time),
+                                          ),
                                           const SizedBox(width: 8),
                                           Container(
-                                            width: MediaQuery.of(context).size.width * 0.5,
-                                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                            width:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.width *
+                                                0.5,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                              horizontal: 16,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: Colors.deepPurple[100],
-                                              borderRadius: BorderRadius.circular(12),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Color.fromRGBO(0, 0, 0, 0.1),
+                                                  color: Color.fromRGBO(
+                                                    0,
+                                                    0,
+                                                    0,
+                                                    0.1,
+                                                  ),
                                                   blurRadius: 8,
                                                   offset: Offset(0, 4),
                                                 ),
                                               ],
-                                              border: Border.all(color: Colors.deepPurpleAccent),
+                                              border: Border.all(
+                                                color: Colors.deepPurpleAccent,
+                                              ),
                                             ),
                                             child: Text(message.text),
                                           ),
@@ -331,7 +389,10 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -352,29 +413,75 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.send),
-                      onPressed: () async {
-                        if (result.trim().isEmpty) return; 
-                        addMessage(result);
-                        _convertTextToMorse();
-                        _textController.clear();
-                        result = '';
+                      onPressed: _isFlashing || result.trim().isEmpty 
+                        ? null
+                        : () async {
+                          if (result.trim().isEmpty) return;
+                          setState(() {
+                            _isFlashing = true;
+                          });
+                          addMessage(result);
+                          _convertTextToMorse();
+                          _textController.clear();
+                          FocusScope.of(context).unfocus();
+                          result = '';
 
-                        await Future.delayed(Duration(milliseconds: 100));
-                          _scrollController.animateTo(
-                          _scrollController.position.maxScrollExtent,
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.easeOut,
-                        );
-                        _flashMorseSignal(_morseOutput);
-                      },
+                          await Future.delayed(Duration(milliseconds: 100));
+                          await _scrollController.animateTo(
+                                 _scrollController.position.maxScrollExtent,
+                                 duration: Duration(milliseconds: 300),
+                                 curve: Curves.easeOut,
+                           );
+                          await _flashMorseSignal(_morseOutput);
+
+                          setState(() {
+                            _isFlashing = false;
+                          });
+                          _morseOutput = '';
+                        },
                     ),
                     IconButton(
                       icon: const Icon(Icons.camera_alt),
-                      onPressed: () {
-                        Navigator.push(
+                      onPressed: () async {
+                        final result = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => CameraScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const CameraScreen(),
+                          ),
                         );
+
+                        if (result != null &&
+                            result is String &&
+                            result.trim().isNotEmpty) {
+                          setState(() {
+                            widget.room.addMessage(
+                              widget.room.roomName,
+                              result,
+                            );
+                            widget.onMessageAdded?.call();
+                          });
+
+                          await Future.delayed(Duration(milliseconds: 100));
+                          _scrollController.animateTo(
+                            _scrollController.position.maxScrollExtent,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                          );
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('エラー'),
+                              content: const Text('メッセージの取得に失敗しました。'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
                       },
                     ),
                   ],
@@ -384,7 +491,7 @@ class _ChatPageState extends State<ChatPage> {
             ],
           ),
         ),
-      ) 
+      ),
     );
   }
 }
