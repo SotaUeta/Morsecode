@@ -86,6 +86,11 @@ class _BottomNavigationState extends State<BottomNavigation> {
             _saveData();
           });
         },
+        onRoomsChanged: () {
+          setState((){
+            _saveData();
+          });
+        },
       );
     } else if (_selectedIndex == 1) {
       currentScreen = ChatPage(
@@ -94,6 +99,9 @@ class _BottomNavigationState extends State<BottomNavigation> {
         onMessageAdded: () {
           _saveData();
         },
+        onRoomsChanged: () {
+          _saveData();
+        }
       );
     } else {
       currentScreen = CameraScreen();

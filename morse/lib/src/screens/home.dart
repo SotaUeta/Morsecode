@@ -2,13 +2,22 @@ import 'package:flutter/material.dart';
 import 'chat.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.rooms, required this.title, required this.onRoomSelected, required this.userName, required this.onUserNameChanged,});
+  const HomePage({
+    super.key, 
+    required this.rooms, 
+    required this.title, 
+    required this.onRoomSelected, 
+    required this.userName, 
+    required this.onUserNameChanged,
+    required this.onRoomsChanged
+  });
 
   final String title;
   final List<ChatRoom> rooms;
   final String userName;
   final void Function(ChatRoom room) onRoomSelected;
   final void Function(String newName) onUserNameChanged;
+  final VoidCallback onRoomsChanged;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -110,6 +119,7 @@ class _HomePageState extends State<HomePage> {
                           setState(() {
                             widget.rooms.removeAt(index);
                           });
+                          widget.onRoomsChanged();
                         }
                       },
                     ),
@@ -149,6 +159,7 @@ class _HomePageState extends State<HomePage> {
             setState((){
               widget.rooms.add(ChatRoom(newRoomName));
             });
+            widget.onRoomsChanged();
           }
         },
         child: Icon(Icons.add),
