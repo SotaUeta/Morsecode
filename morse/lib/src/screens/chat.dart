@@ -73,7 +73,9 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _textController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController(); // チャットメッセージ用
+  final ScrollController _textScrollController = ScrollController(); // TextField用
+  
   bool _showScrollDown = false;
   bool _isFlashing = false;
 
@@ -396,19 +398,25 @@ class _ChatPageState extends State<ChatPage> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: _textController,
-                        maxLines: null,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(allowedRegex),
-                        ],
-                        decoration: const InputDecoration(
-                          hintText: 'メッセージ(英数字)を入力',
-                          border: OutlineInputBorder(),
+                      child: Scrollbar(
+                        controller: _textScrollController,
+                        child: TextField(
+                          controller: _textController,
+                          scrollController: _textScrollController,
+                          minLines: 1,
+                          maxLines: 5,
+                          keyboardType: TextInputType.multiline,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(allowedRegex),
+                          ],
+                          decoration: const InputDecoration(
+                            hintText: 'メッセージ(英数字)を入力',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) {
+                            result = value;
+                          },
                         ),
-                        onChanged: (value) {
-                          result = value;
-                        },
                       ),
                     ),
                     IconButton(
