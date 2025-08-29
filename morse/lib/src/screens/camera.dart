@@ -417,7 +417,7 @@ class _CameraScreenState extends State<CameraScreen> {
                         _cameraController.value.previewSize!.width;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('カメラ')),
+      appBar: AppBar(title: const Text('カメラ'), centerTitle: true,),
       body: Stack(
         children: [
           Center(

@@ -174,6 +174,7 @@ class _ChatPageState extends State<ChatPage> {
       },
       child: Scaffold(
         appBar: AppBar(
+          centerTitle: true,
           title: InkWell(
             onTap: () async {
               final controller = TextEditingController(
