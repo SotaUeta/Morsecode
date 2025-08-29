@@ -446,10 +446,7 @@ class _ChatPageState extends State<ChatPage> {
                           ),
                         );
 
-                        if (result != null &&
-                            result is String &&
-                            result.trim().isNotEmpty) {
-                          setState(() {
+                        setState(() {
                             widget.room.addMessage(
                               widget.room.roomName,
                               result,
@@ -463,21 +460,39 @@ class _ChatPageState extends State<ChatPage> {
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeOut,
                           );
-                        } else {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('エラー'),
-                              content: const Text('メッセージの取得に失敗しました。'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
+
+                        // if (result != null &&
+                        //     result is String &&
+                        //     result.trim().isNotEmpty) {
+                        //   setState(() {
+                        //     widget.room.addMessage(
+                        //       widget.room.roomName,
+                        //       result,
+                        //     );
+                        //     widget.onMessageAdded?.call();
+                        //   });
+
+                        //   await Future.delayed(Duration(milliseconds: 100));
+                        //   _scrollController.animateTo(
+                        //     _scrollController.position.maxScrollExtent,
+                        //     duration: const Duration(milliseconds: 300),
+                        //     curve: Curves.easeOut,
+                        //   );
+                        // } else {
+                        //   showDialog(
+                        //     context: context,
+                        //     builder: (context) => AlertDialog(
+                        //       title: const Text('エラー'),
+                        //       content: const Text('メッセージの取得に失敗しました。'),
+                        //       actions: [
+                        //         TextButton(
+                        //           onPressed: () => Navigator.pop(context),
+                        //           child: const Text('OK'),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //   );
+                        // }
                       },
                     ),
                   ],

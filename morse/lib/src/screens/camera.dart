@@ -43,7 +43,7 @@ class _CameraScreenState extends State<CameraScreen> {
   Stopwatch _stopwatch = Stopwatch();
 
   // 推論準備
-  List<String> classLabels = ['on', 'off', 'unknown'];
+  List<String> classLabels = ['unknown', 'off', 'on'];
 
   List<Pulse> _pulse = [];
 
@@ -136,10 +136,10 @@ class _CameraScreenState extends State<CameraScreen> {
           _convertToString();
           debugPrint(_morseString);
 
+          Navigator.pop(context, _morseString);
+
           _morseSignal = "";
           _morseString = "";
-
-          Navigator.pop(context, _morseString);
 
           if (!mounted) return;
           setState(() => _isStreaming = false);
@@ -412,8 +412,10 @@ class _CameraScreenState extends State<CameraScreen> {
           ? Stack(
               fit: StackFit.expand,
               children: [
-                CameraPreview(_cameraController!),
-                Text('$_predictionLabel:$_predictionScore'),
+                AspectRatio(
+                  aspectRatio: _cameraController!.value.aspectRatio, 
+                  child: CameraPreview(_cameraController!),
+                ),
 
                 // 画面下のトグルボタン
                 Positioned(
