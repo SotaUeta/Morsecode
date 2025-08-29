@@ -200,7 +200,7 @@ class _ChatPageState extends State<ChatPage> {
                 setState(() {
                   widget.room.roomName = newName;
                 });
-                widget.onRoomsChanged?.call;
+                widget.onRoomsChanged?.call();
               }
             },
             child: Text(widget.room.roomName),
