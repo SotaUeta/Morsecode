@@ -209,6 +209,13 @@ class _ChatPageState extends State<ChatPage> {
             },
             child: Text(widget.room.roomName),
           ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(
+              color: Colors.grey,  // 線の色
+              height: 1.0,
+            ),
+          ),
         ),
         body: Center(
           child: Column(

@@ -254,7 +254,13 @@ class _CameraScreenState extends State<CameraScreen> {
     }
 
     // img.Image をバイト列から作成
-    final imgImage = img.Image.fromBytes(width:width, height:height, bytes: Uint8List(width * height * 4).buffer);
+    final imgImage = img.Image.fromBytes(
+      width: width,
+      height: height,
+      bytes: imgBuffer.buffer,
+      order: img.ChannelOrder.rgba,
+      numChannels: 4,
+    );
 
     // PNGエンコード
     return Uint8List.fromList(img.encodePng(imgImage));
@@ -417,7 +423,17 @@ class _CameraScreenState extends State<CameraScreen> {
                         _cameraController.value.previewSize!.width;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('カメラ'), centerTitle: true,),
+      appBar: AppBar(
+        title: const Text('カメラ'),
+        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: Colors.grey,  // 線の色
+            height: 1.0,
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           Center(

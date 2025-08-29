@@ -61,9 +61,17 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text('ホーム'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: Colors.grey,  // 線の色
+            height: 1.0,
+          ),
+        ),
       ),
       body: Column(
         children:[
+          SizedBox(height: 20,),
           Card(
             margin: EdgeInsets.all(8),
             child: ListTile(
@@ -74,6 +82,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+          SizedBox(height: 20,),
           Align(
             alignment: Alignment.centerLeft,
             child: Padding(
