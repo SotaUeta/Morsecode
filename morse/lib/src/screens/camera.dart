@@ -406,34 +406,62 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isCameraInitialized || !_cameraController.value.isInitialized) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final aspectRatio = _cameraController.value.previewSize!.height /
+                        _cameraController.value.previewSize!.width;
+
     return Scaffold(
       appBar: AppBar(title: const Text('カメラ')),
-      body: _isCameraInitialized && _cameraController != null
-          ? Stack(
-              fit: StackFit.expand,
-              children: [
-                CameraPreview(_cameraController!),
-                Text('$_predictionLabel:$_predictionScore'),
+      body: Stack(
+        children: [
+          Center(
+            child: SizedBox(
+              width: screenWidth,
+              child: AspectRatio(
+                aspectRatio: aspectRatio,
+                child: CameraPreview(_cameraController),
+              ),
+            ),
+          ),
 
-                // 画面下のトグルボタン
-                Positioned(
-                  left: 24,
-                  right: 24,
-                  bottom: 24,
-                  child: SafeArea(
-                    child: ElevatedButton.icon(
-                      onPressed: _toggleStreaming,
-                      icon: Icon(_isStreaming ? Icons.stop : Icons.play_arrow),
-                      label: Text(_isStreaming ? 'ストリーミング停止' : 'ストリーミング開始'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.all(16),
-                      ),
-                    ),
-                  ),
+          // 推論ラベル表示
+          Positioned(
+            top: 16,
+            left: 16,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              color: Colors.black54,
+              child: Text(
+                '$_predictionLabel: ${_predictionScore?.toStringAsFixed(2)}',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+
+          // 画面下のトグルボタン
+          Positioned(
+            left: 24,
+            right: 24,
+            bottom: 24,
+            child: SafeArea(
+              child: ElevatedButton.icon(
+                onPressed: _toggleStreaming,
+                icon: Icon(_isStreaming ? Icons.stop : Icons.play_arrow),
+                label: Text(_isStreaming ? 'ストリーミング停止' : 'ストリーミング開始'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
                 ),
-              ],
-            )
-          : const Center(child: CircularProgressIndicator()),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
