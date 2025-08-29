@@ -40,7 +40,7 @@ class _CameraScreenState extends State<CameraScreen> {
   bool _hasStarted = false;
 
   // タイマー
-  Stopwatch _stopwatch = Stopwatch();
+  final Stopwatch _stopwatch = Stopwatch();
 
   // 推論準備
   List<String> classLabels = ['on', 'off', 'unknown'];
@@ -65,7 +65,7 @@ class _CameraScreenState extends State<CameraScreen> {
   //利用可能なカメラのリスト
   List<CameraDescription> _cameras = [];
   //現在選択中のカメラの向き
-  CameraLensDirection _currentLensDirection = CameraLensDirection.front;
+  final CameraLensDirection _currentLensDirection = CameraLensDirection.front;
 
   @override
   void initState() {
